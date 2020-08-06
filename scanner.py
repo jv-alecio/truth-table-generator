@@ -3,7 +3,8 @@ import boolean_operations as op
 
 class Scanner(Lexer):
     def __init__(self):
-        self._expected_characters_list = 'abcdefghijklmnopqrstuvwxyz()'
+        self._expected_characters_list = 'abcdefghijklmnopqrstuvwxyz'
+        self._brackets = '()'
 
     def scan(self,expression):
         self.expression = expression
@@ -13,6 +14,7 @@ class Scanner(Lexer):
         
         self._check_size()
         self._check_characters()
+        
 
         self._set_global_variables()
 
@@ -29,26 +31,48 @@ class Scanner(Lexer):
             raise Exception("Invalid number of characters")
 
     def _check_characters(self):
-        expected_chars = self._expected_characters_list + self.operator
-        for c in self.expression:
-            if c not in expected_chars:
-                raise Exception('Invalid character : '+ c)
-        
-        #remove redundant brackets
+        expected_chars = self._expected_characters_list + self._brackets + self.operator
+
+        bracket_open = []
+        bracket_close = []
+        brackets = {}
 
         ##check for double operation symbols
-        for i,c in enumerate(self.expression,start=0):
-            if c in self.operator:
-                if self.expression[i+1] in self.operator[1:]:
-                    raise Exception("Invalid syntax at pos[" + str(i) + "] '" + c + self.expression[i+1]+"'")
-                if self.expression[i+1] in self._expected_characters_list:
-                    return 0
+        if self.expression[0] in self.operator[1:]:
+            raise Exception("Invalid syntax at pos[0] : '" +self.expression[0]+ "'")
 
-            ##check for number after operator
+        if self.expression[-1] in self.operator :
+            raise Exception("Invalid syntax at pos["+str(len(self.expression))+"] : '"+ self.expression[-1]+"'")
+
+        for i,c in enumerate(self.expression):
+            if i < len(self.expression)-1:
+                c2 = self.expression[i+1]
+            
+            if c not in expected_chars:
+                raise Exception('Invalid characters : '+ c + "at pos[" + str(i) + "] '")
+
+            elif c in self._expected_characters_list and c2 in self._expected_characters_list:
+                raise Exception("Invalid characters : '"+ c+c2 + "' at pos[" + str(i) + "," + str(i+1)+"]")
+
+            if c in self.operator:
+                if c2 in self.operator[1:]:
+                    raise Exception("Invalid syntax at pos[" + str(i) + "] '" + c + self.expression[i+1]+"'")
+            #check for brackets        
+            elif c == '(':
+                bracket_open.append(i)
+            elif c == ')':
+                bracket_close.append(i)
+
+            if(len(bracket_open) > 0 and len(bracket_close) > 0):
+                brackets[bracket_open.pop()] = bracket_close.pop()
+
+        if len(bracket_open) != len(bracket_close):
+            raise Exception("Invalid syntax")
+                
+        print(brackets)
 
     def _set_global_variables(self):
-        expected_vars = 'abcdefghijklmnopqrstuvwxyz'
         for c in self.expression:
-            if c in expected_vars and c not in self.variables:
+            if c in self._expected_characters_list and c not in self.variables:
                 self.variables = c
         
