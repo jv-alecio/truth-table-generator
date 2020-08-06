@@ -11,7 +11,7 @@ class TruthTable(Lexer):
         self._create(expression)
 
     def _create(self,expression):
-        parser = Parser(Scanner(expression))
+        parser = Parser(Scanner().scan(expression))
 
         self.var = self.variables.copy()
 
@@ -41,10 +41,8 @@ class TruthTable(Lexer):
 
 if __name__ == "__main__":
     #debug
-    while(1):
-        try:
-            TruthTable(input("Expression: ")).print()
-        except:
-            break
+    #while(1):
+        expression = "a+bb*!((b*a))"
+        TruthTable(expression).print()
     
         
